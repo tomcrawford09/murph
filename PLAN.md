@@ -85,19 +85,31 @@ Always show the active-day count near the averages. One excellent day in fourtee
 
 Tom chose **Supabase**, with **Cloudflare Pages** the recommended free host for the web app. The GitHub repository is [tomcrawford09/murph](https://github.com/tomcrawford09/murph). The prototype was saved on branch `codex/murph-ish-prototype` at commit `74bd35a`; it is not yet a live app. Once the daily-use version is ready, use a production branch for automatic Pages deployments. A static site needs no build command. Keep runtime exercise data in Supabase, with a local copy for instant taps and offline use.
 
-Cloudflare Pages serves static assets on its free plan and can automatically deploy from GitHub. Supabase's current free plan includes a small database and authentication, which is ample for one person's exercise log. The material limits for this use are that free Supabase projects pause after one week of inactivity and do not include automatic database backups. Keep a downloadable personal backup even after sync is working. These terms can change; check the official pricing pages when creating the projects.
+Cloudflare Pages serves static assets on its free plan and can automatically deploy from GitHub. Supabase's current free plan includes a small database and authentication, which is ample for two people's exercise logs. The material limits for this use are that free Supabase projects pause after one week of inactivity and do not include automatic database backups. Keep a downloadable personal backup even after sync is working. These terms can change; check the official pricing pages when creating the projects.
 
-Tom's personal Supabase dashboard login is an administrator account for Supabase. It does not itself create a Supabase project or automatically sign him in to Murph-ish. Create a separate Supabase project, configure the app's authentication for `tomcrawford09@gmail.com`, and then set the Cloudflare Pages URL as an allowed redirect. Email magic-link sign-in is the smallest setup for one user. Google sign-in is also supported but needs a Google OAuth client and extra configuration. Neither auth flow should interrupt ordinary tap logging while a valid session remains.
+Tom's personal Supabase dashboard login is an administrator account for Supabase. It does not itself create a Supabase project or automatically sign him in to Murph-ish. Create a separate Supabase project, configure Google sign-in for Tom and his friend, and set the Cloudflare Pages URL as an allowed redirect. Google login requires a Google Cloud OAuth client and Supabase provider configuration. Keep sessions so ordinary tap logging does not repeatedly interrupt users. An email sign-in fallback can be added if needed; Supabase's default email sender is restricted and should not be assumed to deliver to arbitrary friends.
 
-The GitHub repository is public, so commit no service-role key, database password, access token or private exercise data. The browser may use a Supabase publishable client key only after owner-only row-level policies are in place. Cloudflare serving a public login page is fine; Supabase protects each user's records.
+The GitHub repository is public, so commit no service-role key, database password, access token or private exercise data. The browser may use a Supabase publishable client key only after owner-only row-level policies are in place. Cloudflare serving a public login page is fine; Supabase protects each person's records. Initial app access is by invitation even when the sign-in page is public.
 
 The recommendation is an engineering judgment based on the small personal workload. There is no need for AI inference, paid exercise APIs, GPS or a native mobile build.
 
 In production, use IndexedDB for local entries and a pending sync queue. The app confirms once the local transaction succeeds, then syncs in the background while the app is open. Retry on reopening, connectivity returning and explicit retry; do not depend on mobile background sync being universally available. A service worker caches the app shell so it reopens offline after initial loading. A small HTTPS static host serves the UI.
 
-Use Supabase Auth and one entries table, protected by row-level policies tied to the signed-in user. Only the publishable client key belongs in the browser; never a database service-role key. A unique `(user_id, entry_id)` constraint makes retries idempotent. Download changes when opening the app. Display `Saved on this phone`, `Sync pending`, `Backed up` and actionable failure states accurately.
+Use Supabase Auth and an entries table, protected by row-level policies tied to the signed-in user. Only the publishable client key belongs in the browser; never a database service-role key. A unique `(user_id, entry_id)` constraint makes retries idempotent. Download only that person's entries when opening the app. Display `Saved on this phone`, `Sync pending`, `Backed up` and actionable failure states accurately.
 
 Use server-confirmed deletion markers or immutable reversal entries for production undo, so deleted sets cannot return from another device or an old backup. The prototype simply removes a local entry and does not implement this sync model.
+
+## Sharing and leaderboard proposal
+
+Start with **Google sign-in** for both people through Supabase Auth. Tom can invite his friend by email; a signed-in account gains app access only after its verified email matches an invitation. Knowledge of the public Pages URL does not count as an invitation. The Supabase dashboard login remains separate from app participant accounts. Add Facebook sign-in if someone needs it: it requires a Meta developer app, the Facebook `email` permission and live-app configuration. Supabase can link providers with the same verified email, but a different Facebook email could create a second account unless it is explicitly linked.
+
+Each participant has their own entries and personal graphs. Row-level security permits one participant to read, add, correct and delete only their own entries. A profile holds a display name and a **Show me on the leaderboard** choice, off by default. The leaderboard exposes no email addresses or individual sets. It returns weekly points and active-day count for current, invited, opted-in members only. Perform this aggregation in a carefully scoped database function, so the browser never downloads a friend's private entries.
+
+The proposed first leaderboard is **weekly Murph points**: add each daily overall score in a Monday–Sunday week. This can rise as high as 700 points and gives scattered training a reason to return throughout the week. Show active days beside points for context. A single 100% day scores 100 points; three 50% days score 150. A rolling three-active-day or 14-day average remains a personal trend measure and does not determine rank. Equal points share a rank. The score is self-reported and does not claim that either person completed a full Murph in one session.
+
+Use a common leaderboard week in Australia/Sydney for the initial two-person challenge. If the friend lives in another time zone, confirm a common challenge time zone before launch; otherwise midnight, backfilled entries and the Monday reset can surprise one person. Preserve each participant's chosen training-day date in their personal log.
+
+The home screen still opens on the logger. A small **Friends** tab opens the leaderboard. Signing in happens at first use or when the session expires, not before every set. An uninvited login sees an explanation rather than another person's data. A participant can hide themselves from future rankings without losing their log.
 
 ## Minimal data model
 
@@ -106,7 +118,7 @@ Store one record per tap, not an overwritten running total. This preserves corre
 ```json
 {
   "entry_id": "client-generated UUID",
-  "user_id": "authenticated owner",
+  "user_id": "authenticated participant",
   "occurred_at": "2026-09-26T23:10:00Z",
   "local_date": "2026-09-27",
   "timezone": "Australia/Sydney",
@@ -121,13 +133,16 @@ Store one record per tap, not an overwritten running total. This preserves corre
 
 Use exercise keys `run`, `pull`, `push`, `squat`; distance uses integer metres. Enforce positive finite whole quantities, valid dates and owner access on the server. Totals and averages are derived from entries; they should not be independently edited or stored as the source of truth.
 
+The shared version also needs an invitation record, a participant profile (`user_id`, display name, leaderboard opt-in), and a server-side leaderboard calculation. Authentication identities come from Supabase Auth. Do not duplicate Google/Facebook credentials or provider tokens in application tables.
+
 ## Build sequence and acceptance
 
 1. **Choose the interface.** Try A/B/C using the demo. Confirm the name, increments, rounded running target and shared active-day definition. The prototype is delivered; these choices are proposed rather than approved.
 2. **Build the daily-use version.** Keep the chosen logger, history, undo and charts. Add IndexedDB, durable pending events, install metadata, app icons and offline shell caching. Remove prototype/demo controls from the daily home screen. Import the prototype JSON format.
-3. **Add private backup.** Create the Supabase project, add sign-in, the one-table backend, owner-only policies, idempotent sync and deletion handling. Verify restore on a second browser before relying on it. Connect GitHub to Cloudflare Pages, publish over HTTPS and add it to the actual phone's home screen.
-4. **Use it in ordinary life.** Confirm that opening and logging a set takes a few seconds, preferably one tap after opening. Make the usual increments configurable only if the trial shows a need. Keep the version small.
-5. **Add a one-session attempt later.** Start/end a session, separate the opening and closing runs, group all entries under that session and record elapsed time. Keep daily totals working alongside it. Session completion and daily volume need separate labels.
+3. **Add private backup and invited access.** Create the Supabase project and Google OAuth configuration. Add invitation checks, private entries, owner-only policies, idempotent sync and deletion handling. Test Tom and the friend's accounts separately. Verify restore on a second browser before relying on it. Connect GitHub to Cloudflare Pages, publish over HTTPS and add it to both phones' home screens.
+4. **Add the Friends view.** Let each participant choose a display name and opt in. Calculate weekly points in the database and display only opted-in aggregate results. Check weekly reset, no-activity weeks, late backfills and removal from the leaderboard.
+5. **Use it in ordinary life.** Confirm that opening and logging a set takes a few seconds, preferably one tap after opening. Make the usual increments configurable only if the trial shows a need. Keep the version small.
+6. **Add a one-session attempt later.** Start/end a session, separate the opening and closing runs, group all entries under that session and record elapsed time. Keep daily totals working alongside it. Session completion and daily volume need separate labels.
 
 Release checks for the dependable version:
 
@@ -138,6 +153,9 @@ Release checks for the dependable version:
 - Empty history, one/two active days, long gaps, only-one-exercise days, more than 100%, the 14-day boundary, backfilled days, midnight and Sydney DST behave as specified.
 - Browser failure, denied storage, expired authentication or failed sync must never claim that an unsaved entry is backed up.
 - One user's authenticated session cannot read or alter another user's entries.
+- An uninvited Google account cannot read an entry, create a participant profile or appear in the leaderboard.
+- Opting out removes a participant's name and aggregate score from future leaderboard responses; it does not delete their private log.
+- Logging on either phone updates only its owner's personal totals; the leaderboard changes after the relevant entry is backed up.
 
 ## Documentation checked
 
@@ -151,5 +169,7 @@ Current primary documentation checked 27 September 2026:
 - [Cloudflare Pages: static asset pricing](https://developers.cloudflare.com/pages/functions/pricing/) — static requests are free on the current plan.
 - [Supabase pricing](https://supabase.com/pricing) — free-tier size, project pausing and backup limitations.
 - [Supabase email passwordless sign-in](https://supabase.com/docs/guides/auth/auth-email-passwordless) and [Google sign-in](https://supabase.com/docs/guides/auth/social-login/auth-google) — authentication setup choices.
+- [Supabase Facebook sign-in](https://supabase.com/docs/guides/auth/social-login/auth-facebook) — extra Meta app, email-permission and production setup.
+- [Supabase identity linking](https://supabase.com/docs/guides/auth/auth-identity-linking) — joining providers with the same verified email.
 
 The prototype was pushed to GitHub. No Supabase project, database table, Cloudflare Pages project or live deployment was created for this prototype.
