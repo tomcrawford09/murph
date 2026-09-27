@@ -14,7 +14,7 @@ Open [the local prototype](http://127.0.0.1:8876/?variant=A). This address works
 
 The floating arrows switch layouts; desktop also has a Phone view control. Try the demo without creating real training history. My log stores entries in this browser and remembers the selected mode. Export JSON for recovery or CSV for a spreadsheet. JSON restore merges by ID and preserves existing entries. Browser data is not a cloud backup.
 
-[PLAN.md](PLAN.md) contains naming suggestions, formulas, storage comparison, recommended architecture, rollout stages, acceptance criteria and documentation sources.
+[PLAN.md](PLAN.md) contains naming suggestions, formulas, the Cloudflare Pages + Supabase architecture, rollout stages, acceptance criteria and documentation sources.
 
 The prototype implements daily totals, presets, custom entries, undo, backfill, sparse last-three-active averages and rolling 14-day active averages. It does not implement a service worker, install manifest, cloud sync, authentication or single-session completion tracking.
 

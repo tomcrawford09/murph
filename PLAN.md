@@ -4,7 +4,7 @@ Created 27 September 2026. Personal fitness logging concept for Tom. Working nam
 
 ## Recommendation
 
-Build a small installable web app with immediate local logging and automatic private cloud backup. Open it, tap a number, close it. No form submission or session setup is necessary for scattered sets through the day.
+Build a small installable web app with immediate local logging and automatic private cloud backup. Host the static app on Cloudflare Pages from Tom's GitHub repository and use Supabase for authentication and the exercise log. Open it, tap a number, close it. No form submission or session setup is necessary for scattered sets through the day.
 
 Use the four-column layout as the starting point. It exposes all four exercises and all sixteen increments at once, with one tap per entry. Use a separate progress section below it. An exercise filter keeps the chart to three readable lines rather than twelve overlapping ones.
 
@@ -81,25 +81,23 @@ Use Australia/Sydney calendar dates by default, including daylight saving. Save 
 
 Always show the active-day count near the averages. One excellent day in fourteen can yield a high active-day average while consistency remains low. No streak penalties or automatic workout prescriptions are required.
 
-## Storage decision
+## Hosting and storage decision
 
-| Option | Strength | What it still needs | Decision |
-| --- | --- | --- | --- |
-| Browser only | Immediate response, simplest prototype | Backup and recovery; browser data can disappear; no automatic device transfer | Good for this prototype and a short interface trial |
-| Front end → n8n → Google Sheet | Familiar, inspectable rows; convenient reporting | Authentication, offline queue, retries, duplicate protection, read-back endpoint, undo semantics | Viable if a Sheet is specifically wanted, but not the simplest dependable app |
-| Local app storage + Supabase | Immediate logging plus authenticated database backup across devices | A small event-sync routine, sign-in and row-level access policies | Recommended first dependable version |
+Tom chose **Supabase**, with **Cloudflare Pages** the recommended free host for the web app. The GitHub repository is [tomcrawford09/murph](https://github.com/tomcrawford09/murph). The prototype was saved on branch `codex/murph-ish-prototype` at commit `74bd35a`; it is not yet a live app. Once the daily-use version is ready, use a production branch for automatic Pages deployments. A static site needs no build command. Keep runtime exercise data in Supabase, with a local copy for instant taps and offline use.
 
-The recommendation is an engineering judgment based on the small personal workload. There is no need for AI inference, paid exercise APIs, GPS, a native mobile build or a workflow execution for every tap.
+Cloudflare Pages serves static assets on its free plan and can automatically deploy from GitHub. Supabase's current free plan includes a small database and authentication, which is ample for one person's exercise log. The material limits for this use are that free Supabase projects pause after one week of inactivity and do not include automatic database backups. Keep a downloadable personal backup even after sync is working. These terms can change; check the official pricing pages when creating the projects.
+
+Tom's personal Supabase dashboard login is an administrator account for Supabase. It does not itself create a Supabase project or automatically sign him in to Murph-ish. Create a separate Supabase project, configure the app's authentication for `tomcrawford09@gmail.com`, and then set the Cloudflare Pages URL as an allowed redirect. Email magic-link sign-in is the smallest setup for one user. Google sign-in is also supported but needs a Google OAuth client and extra configuration. Neither auth flow should interrupt ordinary tap logging while a valid session remains.
+
+The GitHub repository is public, so commit no service-role key, database password, access token or private exercise data. The browser may use a Supabase publishable client key only after owner-only row-level policies are in place. Cloudflare serving a public login page is fine; Supabase protects each user's records.
+
+The recommendation is an engineering judgment based on the small personal workload. There is no need for AI inference, paid exercise APIs, GPS or a native mobile build.
 
 In production, use IndexedDB for local entries and a pending sync queue. The app confirms once the local transaction succeeds, then syncs in the background while the app is open. Retry on reopening, connectivity returning and explicit retry; do not depend on mobile background sync being universally available. A service worker caches the app shell so it reopens offline after initial loading. A small HTTPS static host serves the UI.
 
 Use Supabase Auth and one entries table, protected by row-level policies tied to the signed-in user. Only the publishable client key belongs in the browser; never a database service-role key. A unique `(user_id, entry_id)` constraint makes retries idempotent. Download changes when opening the app. Display `Saved on this phone`, `Sync pending`, `Backed up` and actionable failure states accurately.
 
 Use server-confirmed deletion markers or immutable reversal entries for production undo, so deleted sets cannot return from another device or an old backup. The prototype simply removes a local entry and does not implement this sync model.
-
-Keep n8n optional: it can copy backed-up records into a Sheet on a schedule if the spreadsheet proves useful. The app remains usable while n8n is unavailable.
-
-If the Sheet route is chosen, host the front end separately, use an authenticated endpoint and confirm a successful durable write before acknowledging remote backup. Do not embed a shared secret in frontend JavaScript. Queue offline events locally, carry a stable entry ID, enforce serialized/idempotent ingestion, and return explicit acknowledgements. n8n's immediate “workflow started” response is not evidence that the Sheet write finished. Provide a read endpoint for recovery; a write-only webhook cannot restore a new phone. Sheet deletion by mutable row number is too fragile for reliable undo.
 
 ## Minimal data model
 
@@ -127,7 +125,7 @@ Use exercise keys `run`, `pull`, `push`, `squat`; distance uses integer metres. 
 
 1. **Choose the interface.** Try A/B/C using the demo. Confirm the name, increments, rounded running target and shared active-day definition. The prototype is delivered; these choices are proposed rather than approved.
 2. **Build the daily-use version.** Keep the chosen logger, history, undo and charts. Add IndexedDB, durable pending events, install metadata, app icons and offline shell caching. Remove prototype/demo controls from the daily home screen. Import the prototype JSON format.
-3. **Add private backup.** Add sign-in, the one-table backend, owner-only policies, idempotent sync and deletion handling. Verify restore on a second browser before relying on it. Publish to HTTPS and add it to the actual phone's home screen.
+3. **Add private backup.** Create the Supabase project, add sign-in, the one-table backend, owner-only policies, idempotent sync and deletion handling. Verify restore on a second browser before relying on it. Connect GitHub to Cloudflare Pages, publish over HTTPS and add it to the actual phone's home screen.
 4. **Use it in ordinary life.** Confirm that opening and logging a set takes a few seconds, preferably one tap after opening. Make the usual increments configurable only if the trial shows a need. Keep the version small.
 5. **Add a one-session attempt later.** Start/end a session, separate the opening and closing runs, group all entries under that session and record elapsed time. Keep daily totals working alongside it. Session completion and daily volume need separate labels.
 
@@ -149,7 +147,9 @@ Current primary documentation checked 27 September 2026:
 - [MDN: Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API) — browser storage and persistence. Local storage is not a cloud backup.
 - [MDN: making PWAs installable](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable) — manifest, secure serving and platform installation behaviour.
 - [Supabase: row-level security](https://supabase.com/docs/guides/database/postgres/row-level-security) — per-user protection for database access from a browser client.
-- [n8n: Webhook node](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/) — authentication and the distinction between immediate response and workflow completion. Its HTML responses also have sandbox restrictions, another reason to host the front end independently.
-- [n8n: Google Sheets operations](https://docs.n8n.io/integrations/builtin/app-nodes/n8n-nodes-base.googlesheets/sheet-operations/) — supported append/read/update operations.
+- [Cloudflare Pages: Git integration](https://developers.cloudflare.com/pages/get-started/git-integration/) and [Pages limits](https://developers.cloudflare.com/pages/platform/limits/) — static GitHub deployment and free-tier limits.
+- [Cloudflare Pages: static asset pricing](https://developers.cloudflare.com/pages/functions/pricing/) — static requests are free on the current plan.
+- [Supabase pricing](https://supabase.com/pricing) — free-tier size, project pausing and backup limitations.
+- [Supabase email passwordless sign-in](https://supabase.com/docs/guides/auth/auth-email-passwordless) and [Google sign-in](https://supabase.com/docs/guides/auth/social-login/auth-google) — authentication setup choices.
 
-No cloud accounts, workflows, database tables, live Sheets or public deployments were created for this prototype.
+The prototype was pushed to GitHub. No Supabase project, database table, Cloudflare Pages project or live deployment was created for this prototype.
