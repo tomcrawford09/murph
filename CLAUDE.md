@@ -15,4 +15,5 @@ Personal side quest: a phone-first Murph volume logger for Tom and invited frien
 
 - Supabase project ref `zrsnigcaiokfroqggjku` (region ap-northeast-2), managed from Tom's Supabase account. Local-only credentials live in the workspace `.secrets/` folder on Beast (`supabase-murph.token`, `murph-supabase-secret.key`).
 - Cloudflare Pages project `murph-in-progress` on Tom's personal Cloudflare account; `main` is the production branch.
-- Google OAuth client in Tom's personal Google Cloud account; redirect URI `https://zrsnigcaiokfroqggjku.supabase.co/auth/v1/callback`.
+- Google OAuth client in Tom's personal Google Cloud account (project Murph in Progress); redirect URI `https://zrsnigcaiokfroqggjku.supabase.co/auth/v1/callback`. The consent screen is in **Testing** mode: each participant must also be a Google test user, and first sign-in shows a "Google hasn't verified this app" screen. Publishing needs home page and privacy policy links on the Branding page.
+- Client ID and secret are stored locally in `.secrets/murph-google-oauth.*`; Supabase holds its own copy.

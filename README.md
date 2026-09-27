@@ -55,7 +55,10 @@ The build copies only browser files into `dist/`. Database changes go in a new f
 
 ## Invite someone
 
-Add their Google email to `private.invitations` in the Supabase SQL editor. Invitations live only in the database, never in this public repository.
+Two steps, both needed while the Google sign-in app stays in Testing mode:
+
+1. In Google Cloud (project Murph in Progress), go to Google Auth Platform → **Audience** → **Add users** and add their Google email as a test user.
+2. Add the same email to `private.invitations` in the Supabase SQL editor. Invitations live only in the database, never in this public repository.
 
 ```sql
 insert into private.invitations (email) values ('friend@example.com');
