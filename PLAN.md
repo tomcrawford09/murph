@@ -1,5 +1,7 @@
 # Murph-ish: prototype and build plan
 
+> **Status, 27 September 2026:** Tom chose layout A (four columns) and the name **Murph in Progress**. The daily-use app described below is built on `main`: IndexedDB storage, offline shell, Supabase backup with Google sign-in, invitation gate, owner-only row-level security and the opt-in weekly leaderboard. The Supabase project uses region ap-northeast-2 rather than Sydney, because it was the project Tom's access token could reach; calendar days and weeks still use Sydney time. The sections below are the original plan, kept as the reference for the scoring rules and release checks.
+
 Created 27 September 2026. Personal fitness logging concept for Tom. Working name and interface choices remain proposals. The attached screenshot supplied the visual reference only: charcoal, off-white, fine rules, square controls and a mix of bold sans serif and editorial serif.
 
 ## Recommendation

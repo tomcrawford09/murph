@@ -1,11 +1,11 @@
-# Murph-ish
+# Murph in Progress
 
-Murph-ish records a person's daily training volume against a Murph-shaped target and lets invited friends compare progress when they choose to appear on a leaderboard.
+Murph in Progress records a person's daily training volume against a Murph-shaped target and lets invited friends compare progress when they choose to appear on a leaderboard.
 
 ## Language
 
 **Participant**:
-A person invited to use Murph-ish who owns their own training history. Provider accounts are ways to identify the same participant, not separate training histories.
+A person invited to use Murph in Progress who owns their own training history. Provider accounts are ways to identify the same participant, not separate training histories.
 _Avoid_: Supabase account, Google account
 
 **Leaderboard name**:

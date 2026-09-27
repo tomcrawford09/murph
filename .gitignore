@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+__pycache__/
+.wrangler/
+supabase/.temp/
+supabase/.branches/
+*.local.json
+# Dated agent handovers stay local
+*-handover.md
