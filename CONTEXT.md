@@ -6,7 +6,11 @@ Murph-ish records a person's daily training volume against a Murph-shaped target
 
 **Participant**:
 A person invited to use Murph-ish who owns their own training history. Provider accounts are ways to identify the same participant, not separate training histories.
-_Avoid_: Supabase account, Google account, Facebook account
+_Avoid_: Supabase account, Google account
+
+**Leaderboard name**:
+The participant-chosen name shown to other invited participants on the leaderboard. It is not a sign-in credential; a participant's email address stays private.
+_Avoid_: Login username, email address
 
 **Entry**:
 One addition of distance or repetitions to a participant's log, attributed to a training day.
@@ -29,7 +33,7 @@ The sum of daily Murph scores across the seven days of a shared calendar week. I
 _Avoid_: Weekly average, total repetitions
 
 **Leaderboard**:
-A comparison of weekly points among invited participants who have chosen to show their result. It reveals a display name, weekly points and active-day count, while each person's entries remain private.
+A comparison of weekly points among invited participants who have chosen to show their result. It reveals a leaderboard name, weekly points and active-day count, while each person's entries remain private.
 _Avoid_: Shared log
 
 **Murph attempt**:
