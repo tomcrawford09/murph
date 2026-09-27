@@ -1,0 +1,55 @@
+<!doctype html>
+<!-- Throwaway prototype: which logging layout makes a scattered day of training easiest? A: columns, B: rows, C: focus. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#1a191b">
+  <title>Murph-ish · Every rep counts.</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="wordmark" href="./" aria-label="Murph-ish home"><span class="mark">m.</span> MURPH-ISH</a>
+      <span class="eyebrow">A WORK IN PROGRESS. SO ARE WE.</span>
+      <button id="width" class="small quiet" type="button">Phone view</button>
+    </header>
+    <main>
+      <div class="intro">
+        <div><p class="eyebrow">EVERY REP COUNTS.</p><h1>A little more<br> <span class="serif">Murph.</span></h1></div>
+        <p class="intro-copy">One big goal.<br>A few reps at a time.</p>
+      </div>
+      <div class="modebar">
+        <div class="segments" aria-label="Data mode"><button data-mode="demo" aria-pressed="true">Try the demo</button><button data-mode="mine" aria-pressed="false">My log</button></div>
+        <span id="storage-label">Sample history · changes reset on reload</span>
+      </div>
+      <section class="today" aria-labelledby="today-heading">
+        <div class="section-top"><h2 id="today-heading">Today's little victories.</h2><label class="date-label"><span class="sr-only">Logging date</span><input id="log-date" type="date"></label></div>
+        <div class="scoreline"><div><strong id="day-score">0</strong><span class="score-unit">% Murph</span></div><span id="score-caption">Daily volume, gathered as you go.</span></div>
+        <div class="overall-track"><div id="overall-fill"></div></div>
+        <p class="target-line">THE GOAL <span>3.2 km · 100 pull-ups · 200 push-ups · 300 squats</span></p>
+        <div id="logger"></div>
+        <div class="feedback"><span id="feedback" role="status" aria-live="polite">Tap a button. That’s a set, logged.</span><button id="undo" class="quiet small" disabled>↶ Undo last</button></div>
+      </section>
+      <section class="trend" aria-labelledby="trend-heading">
+        <div class="section-top"><div><p class="eyebrow">THE BIGGER PICTURE</p><h2 id="trend-heading">How Murph are you?</h2></div><select id="range" aria-label="Chart date range"><option value="28">4 weeks</option><option value="14">2 weeks</option><option value="84">12 weeks</option></select></div>
+        <div class="metric-tabs" role="group" aria-label="Chart exercise"><button data-metric="overall" aria-pressed="true">Overall</button><button data-metric="run">Run</button><button data-metric="pull">Pull-ups</button><button data-metric="push">Push-ups</button><button data-metric="squat">Squats</button></div>
+        <div class="averages"><div><span>LAST 3 ACTIVE DAYS</span><strong id="last3">—</strong><small id="last3-caption"></small></div><div><span>14-DAY ACTIVE AVERAGE</span><strong id="last14">—</strong><small id="last14-caption"></small></div><div class="consistency"><span>SHOWED UP</span><strong id="active-count">0<span>/14</span></strong><small>days in the last two weeks</small></div></div>
+        <div class="legend"><span><i class="daily-key"></i>Daily</span><span><i class="three-key"></i>Last 3 active days</span><span><i class="fourteen-key"></i>14-day active average</span></div>
+        <div id="chart" class="chart"></div>
+        <p id="chart-note" class="muted chart-note"></p>
+        <details><summary>How the numbers work</summary><div class="explanation"><p><b>Daily:</b> the day's volume as a percentage of the goal. Rest days stay at zero.</p><p><b>Last 3 active days:</b> average your latest three days with any activity, however far apart. With fewer than three, use the days available.</p><p><b>14-day active average:</b> look at today and the previous 13 calendar days. Divide by the number of days with any activity. No active days means no average.</p><p>An active day counts for all four exercises. If you only run, the other three are zero for that day.</p><p><b>Overall:</b> average the four exercise percentages, each capped at 100%. Individual exercise charts can exceed 100%. This measures volume; completing a Murph in one session is a separate milestone.</p></div></details>
+        <details><summary>View chart data</summary><div id="chart-table" class="table-scroll"></div></details>
+      </section>
+      <section class="history"><div class="section-top"><h2 id="history-heading">Today's sets.</h2><span id="set-count" class="muted"></span></div><div id="entries"></div></section>
+      <footer><p><b>Small sets. Long game.</b><br>Prototype · 1.6 km out + 1.6 km back · Reps as specified above.</p><div class="footer-actions"><button id="export" class="quiet small">Export backup</button><button id="csv" class="quiet small">Export CSV</button><button id="import" class="quiet small">Restore backup</button></div><p class="muted" id="backup-note">Demo data is made up. Your log stays in this browser; it is not backed up online.</p></footer>
+    </main>
+  </div>
+  <nav class="prototype-switcher" aria-label="Prototype layout"><button id="previous" aria-label="Previous layout">←</button><span><small>EXPLORE THE PROTOTYPE</small><b id="variant-label">A · Four columns</b></span><button id="next" aria-label="Next layout">→</button></nav>
+  <dialog id="custom-dialog"><form id="custom-form"><p class="eyebrow">A LITTLE MORE MURPH</p><h2 id="custom-title">Add a set</h2><label id="amount-label" for="amount">Reps</label><input id="amount" type="number" inputmode="numeric" min="1" step="1" required><div class="dialog-actions"><button type="button" id="cancel-custom" class="quiet">Cancel</button><button type="submit" class="primary">Add to today</button></div></form></dialog>
+  <input id="import-file" type="file" accept="application/json,.json" hidden>
+  <noscript>This prototype needs JavaScript to log sets and draw your charts.</noscript>
+  <script src="model.js"></script><script src="app.js"></script>
+</body>
+</html>
