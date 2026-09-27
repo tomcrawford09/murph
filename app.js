@@ -57,6 +57,35 @@ async function undo(id,message){
   render();announce(message);scheduleSync();
 }
 
+/* Reset: clears one exercise, or everything, for the date shown. Same one-way deletion markers as undo. */
+let resetKey=null;
+function resetScope(key){return visible().filter(e=>e.local_date===state.date&&(key==='all'||e.exercise===key));}
+function setsLabel(n){return n+(n===1?' set':' sets');}
+function dayLabel(){return state.date===state.today?'today':shortDate(state.date);}
+function renderReset(){
+  const total=M.totals(visible())[state.date]||{},box=$('#reset-options');
+  $('#reset-title').textContent='Reset '+dayLabel();box.replaceChildren();
+  for(const e of [...M.exercises,{key:'all',name:'Everything'}]){
+    const n=resetScope(e.key).length,b=document.createElement('button'),name=document.createElement('span'),detail=document.createElement('small');
+    b.type='button';b.dataset.reset=e.key;b.disabled=!n;b.setAttribute('aria-pressed',resetKey===e.key);
+    name.textContent=e.name;detail.textContent=e.key==='all'?setsLabel(n):`${e.key==='run'?fmt((total.run||0)/1000)+' km':(total[e.key]||0)+' reps'} · ${setsLabel(n)}`;
+    b.append(name,detail);box.append(b);
+  }
+  const n=resetKey?resetScope(resetKey).length:0,chosen=n?resetKey:null;
+  $('#reset-copy').textContent=!chosen?`Choose what to clear from ${dayLabel()}.`:`This removes ${chosen==='all'?'all '+setsLabel(n):setsLabel(n)+' of '+exercise(chosen).name.toLowerCase()} from ${dayLabel()}, on every device. It can’t be undone.`;
+  $('#confirm-reset').disabled=!chosen;$('#confirm-reset').textContent=!chosen?'Reset':chosen==='all'?'Reset everything':'Reset '+exercise(chosen).name.toLowerCase();
+}
+function openReset(){resetKey=null;renderReset();$('#reset-dialog').showModal();}
+async function confirmReset(){
+  const key=resetKey,ids=new Set(resetScope(key).map(e=>e.entry_id)),day=dayLabel();
+  if(!ids.size)return;
+  const now=new Date().toISOString();
+  try{await mutate(entries=>entries.filter(e=>ids.has(e.entry_id)&&!e.deleted_at).map(e=>({...e,deleted_at:now,delete_pushed:false})));}
+  catch{state.storageOk=false;render();announce('Could not reset: this phone refused the change.');return;}
+  $('#reset-dialog').close();resetKey=null;render();
+  announce(`${key==='all'?'Everything':exercise(key).name} reset for ${day}.`);scheduleSync();
+}
+
 /* Backup */
 let syncTimer=null,syncing=null,again=false;
 function describe(err){
@@ -205,7 +234,7 @@ function renderLog(){
   $('#today-heading').textContent=state.date===state.today?"Today's little victories.":shortDate(state.date)+' · little victories.';
   $('#day-score').textContent=score>0&&score<1?'<1':Math.floor(score);$('#overall-fill').style.width=score+'%';
   $('#score-caption').textContent=score>=100?'A full day’s volume. Nicely done.':'Daily volume, gathered as you go.';
-  $('#undo').disabled=!visible().some(e=>e.local_date===state.date);
+  $('#undo').disabled=$('#reset').disabled=!visible().some(e=>e.local_date===state.date);
   renderLogger(total);renderChart();renderHistory();
 }
 function renderFriends(){
@@ -271,11 +300,13 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
   if(b.dataset.add)add(b.dataset.add,Number(b.dataset.amount));
   if(b.dataset.metric){state.metric=b.dataset.metric;renderLog();}
+  if(b.dataset.reset){resetKey=b.dataset.reset;renderReset();}
   if(b.dataset.view){state.view=b.dataset.view;render();if(state.view==='friends')loadBoard();window.scrollTo(0,0);}
   if(b.dataset.custom){state.customKey=b.dataset.custom;const ex=exercise(state.customKey),input=$('#amount');$('#custom-title').textContent='Add '+ex.name.toLowerCase();$('#amount-label').textContent=state.customKey==='run'?'Distance in kilometres':'Number of reps';input.step=state.customKey==='run'?'0.001':'1';input.min=state.customKey==='run'?'0.001':'1';input.max=state.customKey==='run'?'1000':'1000000';input.inputMode=state.customKey==='run'?'decimal':'numeric';input.value='';$('#custom-form button[type=submit]').textContent=state.date===state.today?'Add to today':'Add to '+shortDate(state.date);$('#custom-dialog').showModal();input.focus();}
 });
 $('#custom-form').onsubmit=e=>{e.preventDefault();const n=Number($('#amount').value),amount=state.customKey==='run'?Math.round(n*1000):n;if(n>0&&Number.isSafeInteger(amount)&&amount>0&&amount<=1000000){add(state.customKey,amount);$('#custom-dialog').close();}};
 $('#cancel-custom').onclick=()=>$('#custom-dialog').close();
+$('#reset').onclick=openReset;$('#cancel-reset').onclick=()=>$('#reset-dialog').close();$('#confirm-reset').onclick=confirmReset;
 $('#undo').onclick=()=>{const latest=visible().filter(e=>e.local_date===state.date).sort((a,b)=>a.occurred_at.localeCompare(b.occurred_at)).at(-1);if(latest)undo(latest.entry_id,'Last entry undone.');};
 $('#log-date').onchange=e=>{if(!M.isDay(e.target.value)||e.target.value>state.today){e.target.value=state.date;return;}state.date=e.target.value;render();announce(state.date===state.today?'Logging today.':'Logging '+shortDate(state.date)+'.');};
 $('#range').onchange=renderChart;

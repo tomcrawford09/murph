@@ -30,7 +30,7 @@
         <div class="overall-track"><div id="overall-fill"></div></div>
         <p class="target-line">THE GOAL <span>3.2 km · 100 pull-ups · 200 push-ups · 300 squats</span></p>
         <div id="logger"></div>
-        <div class="feedback"><span id="feedback" aria-live="polite">Tap a button. That’s a set, logged.</span><button id="undo" class="quiet small" type="button" disabled>↶ Undo last</button></div>
+        <div class="feedback"><span id="feedback" aria-live="polite">Tap a button. That’s a set, logged.</span><div class="feedback-actions"><button id="undo" class="quiet small" type="button" disabled>↶ Undo last</button><button id="reset" class="custom" type="button" disabled>Reset…</button></div></div>
       </section>
       <section class="trend" aria-labelledby="trend-heading">
         <div class="section-top"><div><p class="eyebrow">THE BIGGER PICTURE</p><h2 id="trend-heading">How Murph are you?</h2></div><select id="range" aria-label="Chart date range"><option value="28">4 weeks</option><option value="14">2 weeks</option><option value="84">12 weeks</option></select></div>
@@ -75,6 +75,7 @@
   </div>
 
   <dialog id="custom-dialog"><form id="custom-form"><p class="eyebrow">A LITTLE MORE MURPH</p><h2 id="custom-title">Add a set</h2><label id="amount-label" for="amount">Reps</label><input id="amount" type="number" inputmode="numeric" min="1" step="1" required><div class="dialog-actions"><button type="button" id="cancel-custom" class="quiet">Cancel</button><button type="submit" class="primary">Add to today</button></div></form></dialog>
+  <dialog id="reset-dialog"><div><p class="eyebrow">START AGAIN</p><h2 id="reset-title">Reset today</h2><p id="reset-copy" class="account-copy"></p><div id="reset-options" class="reset-options" role="group" aria-label="What to reset"></div><div class="dialog-actions"><button id="cancel-reset" type="button" class="quiet">Cancel</button><button id="confirm-reset" type="button" class="primary" disabled>Reset</button></div></div></dialog>
   <dialog id="account-dialog"><div><p class="eyebrow">YOUR ACCOUNT</p><h2 id="account-title">Back up your log.</h2><p id="account-copy" class="account-copy"></p><div class="account-actions"><button id="sign-in" class="primary" type="button">Continue with Google</button><button id="sync-now" type="button">Back up now</button><button id="sign-out" class="quiet" type="button">Sign out</button></div><div class="dialog-actions"><span></span><button id="close-account" class="quiet" type="button">Close</button></div></div></dialog>
   <input id="import-file" type="file" accept="application/json,.json" hidden>
   <noscript>Murph in Progress needs JavaScript to log sets and draw your charts.</noscript>

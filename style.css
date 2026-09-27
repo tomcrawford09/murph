@@ -35,6 +35,9 @@ h2{font-size:23px;letter-spacing:-.7px;line-height:1.15;margin:0}
 .add:first-child{background:#efede8;color:var(--bg);border-color:#efede8}.add:hover{background:#55515b;color:white}.add:active{background:var(--ink);color:var(--bg)}.add .unit{font-size:11px;margin-left:3px}
 .custom{font-size:11px;border-color:var(--line);height:38px;min-height:38px}
 .feedback{display:flex;justify-content:space-between;align-items:center;min-height:57px;gap:10px;font-size:12px;color:var(--muted);margin-top:8px}.feedback button{white-space:nowrap}
+.feedback-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}.feedback #reset{padding:0 14px;color:var(--ink)}.feedback #reset:active{color:var(--bg)}
+.reset-options{display:grid;gap:8px}.reset-options button{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;text-align:left;font-size:15px}
+.reset-options small{font-size:12px;color:var(--muted)}.reset-options button[aria-pressed=true] small{color:var(--bg)}
 .metric-tabs{display:flex;gap:6px;margin:25px 0 24px}.metric-tabs button{font-size:12px;min-height:34px;padding:7px 14px}
 .averages{display:grid;grid-template-columns:1fr 1fr .8fr;margin-bottom:24px}.averages>div{display:flex;flex-direction:column;border-right:1px solid var(--line);padding:0 22px}.averages>div:first-child{padding-left:0}.averages>div:last-child{border:0}
 .averages>div>span{font-size:9px;letter-spacing:1px;color:var(--muted)}.averages strong{font-size:42px;letter-spacing:-1px;line-height:1.2;margin:4px 0}.averages strong span{font-size:20px;color:var(--muted)}.averages small{font-size:11px;color:var(--muted)}
